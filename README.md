@@ -1,4 +1,4 @@
-\# Self-Healing Infrastructure \& Complete Observability Platform
+# Self-Healing Infrastructure \& Complete Observability Platform
 
 
 
@@ -6,7 +6,7 @@ A hands-on DevOps project demonstrating application monitoring, centralized logg
 
 
 
-\## Project Overview
+## Project Overview
 
 
 
@@ -18,7 +18,7 @@ The entire environment runs locally using Docker Compose, avoiding the need for 
 
 
 
-\## Architecture
+## Architecture
 
 
 
@@ -74,7 +74,7 @@ The entire environment runs locally using Docker Compose, avoiding the need for 
 
 
 
-\## Technology Stack
+## Technology Stack
 
 
 
@@ -100,11 +100,11 @@ The entire environment runs locally using Docker Compose, avoiding the need for 
 
 
 
-\## Key Features
+## Key Features
 
 
 
-\### 1. Application Monitoring
+### 1. Application Monitoring
 
 
 
@@ -116,7 +116,7 @@ The entire environment runs locally using Docker Compose, avoiding the need for 
 
 
 
-\### 2. Alerting
+### 2. Alerting
 
 
 
@@ -134,7 +134,7 @@ Alertmanager forwards notifications to a local Flask webhook.
 
 
 
-\### 3. Automated Recovery
+### 3. Automated Recovery
 
 
 
@@ -150,7 +150,7 @@ The playbook verifies that the target container exists, restarts it, and checks 
 
 
 
-\### 4. Observability
+### 4. Observability
 
 
 
@@ -166,7 +166,7 @@ These components help investigate application behavior and troubleshoot failures
 
 
 
-\## Recovery Test Results
+## Recovery Test Results
 
 
 
@@ -202,11 +202,11 @@ Note: Docker's own `restart: unless-stopped` policy is also enabled. Further tes
 
 
 
-\## Local Setup
+## Local Setup
 
 
 
-\### Prerequisites
+### Prerequisites
 
 
 
@@ -222,7 +222,7 @@ Note: Docker's own `restart: unless-stopped` policy is also enabled. Further tes
 
 
 
-\### Start the project
+### Start the project
 
 
 
@@ -262,7 +262,7 @@ docker compose config --quiet
 
 
 
-\### Access the local services
+### Access the local services
 
 
 
@@ -290,7 +290,7 @@ The webhook and recovery API are intended for internal Docker-network communicat
 
 
 
-\### View logs
+### View logs
 
 
 
@@ -316,7 +316,7 @@ docker compose logs --tail=50 recovery
 
 
 
-\### Verify application health
+### Verify application health
 
 
 
@@ -344,7 +344,7 @@ Expected response:
 
 
 
-\## Security Considerations
+## Security Considerations
 
 
 
@@ -362,7 +362,7 @@ Expected response:
 
 
 
-\## Skills Demonstrated
+## Skills Demonstrated
 
 
 
@@ -386,7 +386,7 @@ Expected response:
 
 
 
-\## Future Improvements
+## Future Improvements
 
 
 
