@@ -1,0 +1,159 @@
+
+services:
+  app:
+    build:
+       context: ./app
+    command: ["node", "--require", "./tracing.js", "app.js"]
+    environment:
+       OTEL_SERVICE_NAME: self-healing-demo-app
+    restart: unless-stopped
+    expose:
+       - "3000"
+    depends_on:
+       - jaeger
+    networks:
+       - monitoring
+
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    networks:
+      - monitoring
+
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:1.4.2
+    command:
+      - --nginx.scrape-uri=http://nginx/stub_status
+    expose:
+      - "9113"
+    depends_on:
+      - nginx
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+      - ./prometheus/alerts:/etc/prometheus/alerts:ro
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+    restart: unless-stopped
+    depends_on:
+      - app
+      - nginx-exporter
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:12.1.1
+    ports:
+      - "127.0.0.1:3001:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    networks:
+      - monitoring
+      
+  loki:
+    image: grafana/loki:3.7.8
+    command:
+      - -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "127.0.0.1:3100:3100"
+    volumes:
+      - ./loki/loki-config.yaml:/etc/loki/local-config.yaml:ro
+      - loki-data:/loki
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+
+  alloy:
+    image: grafana/alloy:latest
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - /etc/alloy/config.alloy
+    volumes:
+      - ./alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - loki
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  jaeger:
+    image: jaegertracing/jaeger:2.13.0
+    ports:
+      - "127.0.0.1:16686:16686"
+    restart: unless-stopped
+    networks:
+      - monitoring
+  
+  alertmanager:
+    image: prom/alertmanager:v0.28.1
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+    ports:
+      - "127.0.0.1:9093:9093"
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  webhook:
+    build:
+      context: ./webhook
+    ports:
+      - "127.0.0.1:5001:5001"
+    restart: unless-stopped
+    networks:
+      - monitoring
+    env_file:
+      - ./recovery/.env
+    environment:
+      RECOVERY_URL: http://recovery:5002/recover
+
+  recovery:
+    image: self-healing-ansible-runner:latest
+    build:
+      context: ./recovery
+    env_file:
+      - ./recovery/.env
+    environment:
+      DOCKER_HOST: unix:///var/run/docker.sock
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./recovery:/workspace
+    expose:
+      - "5002"
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+    driver: bridge
+
+volumes:
+  prometheus-data:
+  grafana-data:
+  loki-data:
+
